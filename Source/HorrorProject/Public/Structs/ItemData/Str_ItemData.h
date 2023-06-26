@@ -6,6 +6,8 @@ struct FItemData
 {
 	GENERATED_BODY()
 
+	FItemData() {};
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UClass> PickupActor = nullptr;

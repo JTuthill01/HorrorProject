@@ -10,7 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SpotLightComponent.h"
 
-APlayerCharacterController::APlayerCharacterController() : InventorySlotsIndex(8), bIsVisible(false)
+APlayerCharacterController::APlayerCharacterController() : InventorySlotsIndex(8), bIsVisible(false), bCanOpenInventory(true), bCanCloseLockInteract(false), bCanInteractWithWidget(false)
 {}
 
 void APlayerCharacterController::BeginPlay()
@@ -72,11 +72,18 @@ void APlayerCharacterController::SetupInputComponent()
 			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterController::StopSprint);
 		}
 
-		/*if (CrouchAction)
+		if (LockInteractCloseAction)
 		{
-			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacterController::StartCrouch);
-		}*/
+			PlayerEnhancedInputComponent->BindAction(LockInteractCloseAction, ETriggerEvent::Started, this, &APlayerCharacterController::CloseLockInteract);
+			PlayerEnhancedInputComponent->BindAction(LockInteractCloseAction, ETriggerEvent::Completed, this, &APlayerCharacterController::ResetLockInteract);
+		}
 
+		if (LockWidgetInteractAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(LockWidgetInteractAction, ETriggerEvent::Started, this, &APlayerCharacterController::StartLockWidgetInteraction);
+			PlayerEnhancedInputComponent->BindAction(LockWidgetInteractAction, ETriggerEvent::Completed, this, &APlayerCharacterController::StopLockWidgetInteraction);
+		}
+		
 		if (InventoryAction)
 			PlayerEnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Started, this, &APlayerCharacterController::OpenCloseInventory);
 	}
@@ -148,57 +155,85 @@ void APlayerCharacterController::StopSprint()
 		PlayerRef->GetMovementComp()->StopSprint();
 }
 
-//void APlayerCharacterController::StartCrouch()
-//{
-//
-//}
-//
-//void APlayerCharacterController::StopCrouch()
-//{
-//}
+void APlayerCharacterController::CloseLockInteract()
+{
+	if (bCanCloseLockInteract == true)
+		OnCloseLockInteraction.Broadcast();
+
+	else
+		return;
+}
+
+void APlayerCharacterController::ResetLockInteract()
+{
+	bCanCloseLockInteract = false;
+
+	//CaputureMouse();
+}
+
+void APlayerCharacterController::StartLockWidgetInteraction()
+{
+	if (bCanInteractWithWidget == true)
+		OnLockWidgetInteraction.Broadcast();
+
+	else
+		return;
+}
+
+void APlayerCharacterController::StopLockWidgetInteraction()
+{
+	if (bCanInteractWithWidget == true)
+		OnLockWidgetInteractionReleased.Broadcast();
+
+	else
+		return;
+}
 
 void APlayerCharacterController::OpenCloseInventory()
 {
-	if (IsValid(MainInventoryWidget) && !bIsVisible)
+	if (bCanOpenInventory)
 	{
-		bIsVisible = true;
+		if (IsValid(MainInventoryWidget) && !bIsVisible)
+		{
+			bIsVisible = true;
 
-		bShowMouseCursor = true;
+			bShowMouseCursor = true;
 
-		SetIgnoreMoveInput(true);
+			SetIgnoreMoveInput(true);
 
-		SetIgnoreLookInput(true);
+			SetIgnoreLookInput(true);
 
-		MainInventoryWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			MainInventoryWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
-		FInputModeGameAndUI Mode;
+			FInputModeGameAndUI Mode;
 
-		Mode.SetHideCursorDuringCapture(false);
+			Mode.SetHideCursorDuringCapture(false);
 
-		Mode.SetWidgetToFocus(MainInventoryWidget->TakeWidget());
+			Mode.SetWidgetToFocus(MainInventoryWidget->TakeWidget());
 
-		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
-		SetInputMode(Mode);
-	}
+			SetInputMode(Mode);
+		}
 
-	else if (IsValid(MainInventoryWidget) && bIsVisible)
-	{
-		MainInventoryWidget->SetVisibility(ESlateVisibility::Hidden);
+		else if (IsValid(MainInventoryWidget) && bIsVisible)
+		{
+			MainInventoryWidget->SetVisibility(ESlateVisibility::Hidden);
 
-		bIsVisible = false;
+			bIsVisible = false;
 
-		SetIgnoreMoveInput(false);
+			SetIgnoreMoveInput(false);
 
-		SetIgnoreLookInput(false);
+			SetIgnoreLookInput(false);
 
-		bShowMouseCursor = false;
+			bShowMouseCursor = false;
 
-		FInputModeGameOnly InputMode;
+			FInputModeGameOnly InputMode;
 
-		SetInputMode(InputMode);
+			SetInputMode(InputMode);
 
-		InputMode.SetConsumeCaptureMouseDown(true);
+			InputMode.SetConsumeCaptureMouseDown(true);
+		}
 	}
 }
 
@@ -222,15 +257,11 @@ void APlayerCharacterController::SetupExamWidget()
 	ExamWidget = CreateWidget<UExaminationWidget>(GetWorld(), ExamWidgetSubclass);
 }
 
-//void APlayerCharacterController::SetupCrouchTimeline()
-//{
-//	if (CrouchCurve)
-//	{
-//		FOnTimelineFloat TimelineCallback;
-//		FOnTimelineEventStatic TimelineFinishedCallback;
-//
-//		TimelineCallback.BindUFunction(this, FName("StartCrouch"));
-//		TimelineFinishedCallback.BindUFunction(this, FName("StopCrouch"));
-//	}
-//}
+void APlayerCharacterController::CaputureMouse()
+{
+	FInputModeGameOnly InputMode;
 
+	SetInputMode(InputMode);
+
+	InputMode.SetConsumeCaptureMouseDown(true);
+}

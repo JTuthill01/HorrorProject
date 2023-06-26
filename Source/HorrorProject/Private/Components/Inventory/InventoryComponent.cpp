@@ -47,7 +47,7 @@ void UInventoryComponent::ComponentSetup()
 
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AInventoryExamination::StaticClass(), FoundActors);
 
-	GEngine->AddOnScreenDebugMessage(-1, 8.F, FColor::White, L"Actor Name: " + FoundActors[0]->GetName());
+	//GEngine->AddOnScreenDebugMessage(-1, 8.F, FColor::White, L"Actor Name: " + FoundActors[0]->GetName());
 
 	InventoryExaminationRef = Cast<AInventoryExamination>(FoundActors[0]);
 }

@@ -1,6 +1,7 @@
 #include "Components/Flashlight/FlashlightComponent.h"
 #include "Character/Player/PlayerCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Components/SpotLightComponent.h"
 #include "TimerManager.h"
 #include "Engine/World.h"
@@ -49,6 +50,8 @@ void UFlashlightComponent::ToggleFlashLight()
 	{
 		if (CurrentBatteryLevel > MinBatteryLevel)
 		{
+			SetIntensity();
+
 			Light->SetVisibility(true);
 
 			GetWorld()->GetTimerManager().SetTimer(BatteryTimerHandle, this, &UFlashlightComponent::DepleteBatteryLife, BatteryTimer, true);
@@ -62,6 +65,8 @@ void UFlashlightComponent::DepleteBatteryLife()
 
 	CurrentBatteryLevel = FMath::Clamp(CurrentBatteryLevel, MinBatteryLevel, MaxBatteryLevel);
 
+	SetIntensity();
+
 	if (CurrentBatteryLevel <= MinBatteryLevel)
 	{
 		Light->SetVisibility(false);
@@ -73,5 +78,18 @@ void UFlashlightComponent::DepleteBatteryLife()
 void UFlashlightComponent::AddBatteryLife(double InBatteryLife)
 {
 	CurrentBatteryLevel = FMath::Clamp(CurrentBatteryLevel + InBatteryLife, MinBatteryLevel, MaxBatteryLevel);
+
+	SetIntensity();
+}
+
+void UFlashlightComponent::SetIntensity()
+{
+	double LocalIntensity = UKismetMathLibrary::MapRangeClamped(CurrentBatteryLevel, MinBatteryLevel, MaxBatteryLevel, 0.0, 1.0);
+
+	if (Light->bUseIESBrightness)
+		Light->SetIESBrightnessScale(LocalIntensity);
+
+	else
+		Light->SetIntensity(LocalIntensity);
 }
 

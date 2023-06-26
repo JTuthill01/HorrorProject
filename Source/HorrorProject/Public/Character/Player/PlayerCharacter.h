@@ -13,14 +13,22 @@ class HORRORPROJECT_API APlayerCharacter : public ACharacter, public IPlayerRefI
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	APlayerCharacter();
 
-	FORCEINLINE TObjectPtr<class UCameraComponent> GetPlayerCamera() const { return Camera; };
+	FORCEINLINE TObjectPtr<class UCameraComponent> GetPlayerCamera() const { return Camera; }
 	FORCEINLINE TObjectPtr<class USpotLightComponent> GetFlashlight() const { return FlashLight; }
 	FORCEINLINE TObjectPtr<class UMovementComp> GetMovementComp() const { return MovementComp; }
 	FORCEINLINE TObjectPtr<class UInventoryComponent> GetInventoryComponent() const { return InventoryComponent; }
 	FORCEINLINE TObjectPtr<class UFlashlightComponent> GetFlashLightComp() const { return FlashLightComp; }
+	FORCEINLINE TObjectPtr<class UHealthComponent> GetHealthComponent() const { return HealthComp; }
+
+	FORCEINLINE bool GetIsHiding() const { return bIsHiding; }
+
+public:
+	FORCEINLINE void SetIsHiding(bool Hiding) { bIsHiding = Hiding; }
+
+public:
+	// Sets default values for this character's properties
+	APlayerCharacter();
 
 public:	
 	// Called every frame
@@ -62,6 +70,12 @@ private:
 	UPROPERTY()
 	TObjectPtr<UAnimInstance> PlayerAnimInstance;
 
+	UPROPERTY()
+	TObjectPtr<class UMainHUDWidget> HUDWidget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = HUD, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMainHUDWidget> HUDWidgetClass;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> Camera;
 
@@ -83,9 +97,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UFlashlightComponent> FlashLightComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UHealthComponent> HealthComp;
+
 private:
 	float InteractableTraceTimer;
 
 	FTimerHandle InteractableTraceTimerHandle;
+
+	bool bIsHiding;
 };
 

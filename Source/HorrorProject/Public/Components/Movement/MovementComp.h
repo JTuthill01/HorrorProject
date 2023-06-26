@@ -10,6 +10,10 @@ class HORRORPROJECT_API UMovementComp : public UActorComponent
 {
 	GENERATED_BODY()
 
+public:
+	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
+	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
+
 public:	
 	// Sets default values for this component's properties
 	UMovementComp();

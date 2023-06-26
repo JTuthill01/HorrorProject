@@ -10,6 +10,10 @@ class HORRORPROJECT_API UFlashlightComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+public:
+	FORCEINLINE double GetMaxBatteryLevel() const { return MaxBatteryLevel; }
+	FORCEINLINE double GetCurrentBatteryLevel() const { return CurrentBatteryLevel; }
+
 public:	
 	// Sets default values for this component's properties
 	UFlashlightComponent();
@@ -28,6 +32,8 @@ public:
 	void DepleteBatteryLife();
 
 	void AddBatteryLife(double InBatteryLife);
+
+	void SetIntensity();
 
 private:
 	UPROPERTY()

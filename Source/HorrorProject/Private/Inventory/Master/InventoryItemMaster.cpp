@@ -3,7 +3,7 @@
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
-AInventoryItemMaster::AInventoryItemMaster() : ActorBpClass(nullptr), ItemFilePath(""), bUseItemSucessfully(false)
+AInventoryItemMaster::AInventoryItemMaster() : ActorBpClass(nullptr), ItemData(FItemData()), ItemFilePath(""), bUseItemSucessfully(false)
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -15,6 +15,8 @@ void AInventoryItemMaster::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerRef = IPlayerRefInterface::Execute_GetPlayerRef(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+
+	GEngine->AddOnScreenDebugMessage(-1, 8.F, FColor::Purple, __FUNCTION__);
 }
 
 // Called every frame

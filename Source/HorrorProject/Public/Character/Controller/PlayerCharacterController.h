@@ -6,29 +6,54 @@
 #include "Components/TimelineComponent.h"
 #include "PlayerCharacterController.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCloseLockInteraction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockWidgetInteraction);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLockWidgetInteractionReleased);
+
+
 class UInputAction;
 
 UCLASS()
 class HORRORPROJECT_API APlayerCharacterController : public APlayerController
 {
 	GENERATED_BODY()
-	
-public:
-	APlayerCharacterController();
 
+public:
 	FORCEINLINE TObjectPtr<class UMainInventoryWidget> GetMainInventoryWidget() const { return MainInventoryWidget; }
 	FORCEINLINE TObjectPtr<class UExaminationWidget> GetExamWidget() const { return ExamWidget; }
 
 	FORCEINLINE int32 GetInventorySlotsIndex() const { return InventorySlotsIndex; }
+	FORCEINLINE bool GetCanOpenInventory() const { return bCanOpenInventory; }
+
+	FORCEINLINE void SetCanOpenInventory(bool Val) { bCanOpenInventory = Val; }
+	FORCEINLINE void SetCanCloseLockInteract(bool NewVal) { bCanCloseLockInteract = NewVal; }
+	FORCEINLINE void SetCanInteractWithWidget(bool InValue) { bCanInteractWithWidget = InValue; }
+	
+public:
+	APlayerCharacterController();
 
 public:
 	virtual void SetupInputComponent() override;
 
 	virtual void PlayerTick(float DeltaTime) override;
 
+public:
+	void CaputureMouse();
+
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnCloseLockInteraction OnCloseLockInteraction;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLockWidgetInteraction OnLockWidgetInteraction;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLockWidgetInteractionReleased OnLockWidgetInteractionReleased;
+
+protected:
 #pragma region INPUT
 
 	//Input Actions//
@@ -57,10 +82,13 @@ protected:
 	TObjectPtr<UInputAction> SprintAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input)
-	TObjectPtr<UInputAction> CrouchAction;
+	TObjectPtr<UInputAction> InventoryAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input)
-	TObjectPtr<UInputAction> InventoryAction;
+	TObjectPtr<UInputAction> LockInteractCloseAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Input)
+	TObjectPtr<UInputAction> LockWidgetInteractAction;
 
 	//Input Functions//
 	void Move(const FInputActionValue& Value);
@@ -74,22 +102,11 @@ protected:
 	void ToggleFlashlight();
 	void StartSprint();
 	void StopSprint();
-	//void StartCrouch();
-	//void StopCrouch();
+	void CloseLockInteract();
+	void ResetLockInteract();
+	void StartLockWidgetInteraction();
+	void StopLockWidgetInteraction();
 	void OpenCloseInventory();
-
-#pragma endregion
-
-//#pragma region Timeline
-//
-//	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = FloatCurve, meta = (AllowPrivateAccess = "true"))
-//	TObjectPtr<class UCurveFloat> CrouchCurve;
-//
-//	FTimeline CrouchTimeline;
-//
-//	void SetupCrouchTimeline();
-//
-//#pragma endregion
 
 private:
 	void SetupInventoryWidget();
@@ -116,4 +133,7 @@ private:
 	int32 InventorySlotsIndex;
 
 	bool bIsVisible;
+	bool bCanOpenInventory;
+	bool bCanCloseLockInteract;
+	bool bCanInteractWithWidget;
 };

@@ -1,9 +1,11 @@
 #include "Character/Player/PlayerCharacter.h"
 #include "Character/Controller/PlayerCharacterController.h"
 #include "Interfaces/Interaction/InteractInterface.h"
+#include "Widgets/HUD/MainHUDWidget.h"
 #include "Components/Movement/MovementComp.h"
 #include "Components/Inventory/InventoryComponent.h"
 #include "Components/Flashlight/FlashlightComponent.h"
+#include "Components/Health/HealthComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Camera/CameraComponent.h"
@@ -12,7 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
-APlayerCharacter::APlayerCharacter() : InteractableTraceTimer(0.25F)
+APlayerCharacter::APlayerCharacter() : InteractableTraceTimer(0.25F), bIsHiding(false)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
@@ -40,6 +42,8 @@ APlayerCharacter::APlayerCharacter() : InteractableTraceTimer(0.25F)
 	FlashLightComp = CreateDefaultSubobject<UFlashlightComponent>(L"FlashLightComp");
 
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(L"Inventory Component");
+
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(L"Health Component");
 }
 
 // Called when the game starts or when spawned
@@ -48,14 +52,17 @@ void APlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	GetWorldTimerManager().SetTimer(InteractableTraceTimerHandle, this, &APlayerCharacter::ScanForInteractables, InteractableTraceTimer, true);
+
+	HUDWidget = CreateWidget<UMainHUDWidget>(GetWorld(), HUDWidgetClass);
+
+	if (IsValid(HUDWidget))
+		HUDWidget->AddToViewport();
 }
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Yellow, FString::SanitizeFloat(FlashLightComp->CurrentBatteryLevel));
 }
 
 void APlayerCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
